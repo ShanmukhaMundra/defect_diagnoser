@@ -1,0 +1,6 @@
+google-adk>=2.13.0
+google-cloud-aiplatform[agent_engines,adk]>=2.6.0
+networkx>=3.3
+python-dotenv>=1.0
+pytest>=8.0
+anthropic>=0.43.0

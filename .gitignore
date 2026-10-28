@@ -1,0 +1,6 @@
+.env
+Enter/
+__pycache__/
+.adk/
+.DS_Store
+.idea/

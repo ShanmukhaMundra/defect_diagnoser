@@ -1,0 +1,152 @@
+{
+  "_meta": {
+    "domain": "Injection molding, thermoplastic parts",
+    "version": "1.0",
+    "notes": "Priors are the share of closed defect tickets attributed to each root cause. Edge weights are P(symptom observed | root cause is active). Illustrative values: replace with your plant's ticket history.",
+    "leak_probability": 0.02,
+    "unmodeled_cause": {
+      "id": "unmodeled_cause",
+      "name": "A cause not in the knowledge graph",
+      "prior": 0.05,
+      "symptom_probability": 0.12
+    }
+  },
+  "symptoms": {
+    "short_shot":            {"name": "Short shot",              "aliases": ["incomplete fill", "unfilled part", "part not filling", "non-fill"]},
+    "flash":                 {"name": "Flash",                   "aliases": ["flashing", "excess material at parting line", "thin fins", "burrs on edge"]},
+    "sink_marks":            {"name": "Sink marks",              "aliases": ["sinks", "depressions", "dimples over ribs", "sink"]},
+    "voids":                 {"name": "Internal voids",          "aliases": ["vacuum voids", "bubbles inside", "internal bubbles", "void"]},
+    "warpage":               {"name": "Warpage",                 "aliases": ["warping", "bowing", "twist", "not flat", "warp"]},
+    "splay_marks":           {"name": "Splay / silver streaks",  "aliases": ["silver streaks", "splay", "silver streaking", "moisture streaks"]},
+    "burn_marks":            {"name": "Burn marks",              "aliases": ["burning", "dieseling", "black edges at end of fill", "scorch"]},
+    "black_specks":          {"name": "Black specks",            "aliases": ["black spots", "specks", "contamination spots", "dark particles"]},
+    "brittle_parts":         {"name": "Brittle parts",           "aliases": ["brittleness", "cracking", "parts snap", "low impact strength"]},
+    "flow_lines":            {"name": "Flow lines",              "aliases": ["flow marks", "ripples", "wavy lines"]},
+    "weld_lines":            {"name": "Weld / knit lines",       "aliases": ["knit lines", "weld lines", "meld lines"]},
+    "dims_out_of_tolerance": {"name": "Dimensions out of tolerance", "aliases": ["out of spec dimensions", "oversize", "undersize", "dimensional drift", "dimensions off"]}
+  },
+  "root_causes": {
+    "low_melt_temp": {
+      "name": "Melt temperature too low", "prior": 0.12,
+      "symptoms": {"short_shot": 0.70, "flow_lines": 0.60, "weld_lines": 0.55, "sink_marks": 0.20, "brittle_parts": 0.15},
+      "controlled_by": ["barrel_zone_temps", "nozzle_temp"],
+      "remedy": "Raise barrel and nozzle temperatures in 5-10 C steps, staying inside the resin datasheet window."
+    },
+    "high_melt_temp": {
+      "name": "Melt temperature too high / residence too long", "prior": 0.09,
+      "symptoms": {"burn_marks": 0.50, "flash": 0.45, "black_specks": 0.30, "sink_marks": 0.35, "splay_marks": 0.20, "brittle_parts": 0.20},
+      "controlled_by": ["barrel_zone_temps", "shot_size_vs_barrel"],
+      "remedy": "Lower barrel temperatures and check residence time (shot size should be 25-75% of barrel capacity)."
+    },
+    "insufficient_pack_pressure": {
+      "name": "Insufficient pack / hold pressure or time", "prior": 0.15,
+      "symptoms": {"sink_marks": 0.75, "voids": 0.60, "short_shot": 0.35, "dims_out_of_tolerance": 0.40},
+      "controlled_by": ["hold_pressure", "hold_time", "gate_freeze"],
+      "remedy": "Increase hold pressure and run a gate-freeze study to set hold time."
+    },
+    "blocked_vents": {
+      "name": "Blocked or undersized mold vents", "prior": 0.09,
+      "symptoms": {"burn_marks": 0.70, "short_shot": 0.50, "voids": 0.20, "weld_lines": 0.25},
+      "controlled_by": ["vent_depth", "mold_maintenance_interval"],
+      "remedy": "Clean vents; confirm vent depth matches the resin (typically 0.01-0.03 mm); shorten the PM interval."
+    },
+    "worn_parting_line": {
+      "name": "Worn or damaged parting line", "prior": 0.07,
+      "symptoms": {"flash": 0.80, "dims_out_of_tolerance": 0.20},
+      "controlled_by": ["mold_maintenance_interval"],
+      "remedy": "Pull the mold for parting-line repair; blue-check shutoffs."
+    },
+    "insufficient_clamp_force": {
+      "name": "Insufficient clamp tonnage", "prior": 0.08,
+      "symptoms": {"flash": 0.75, "dims_out_of_tolerance": 0.30, "short_shot": 0.10},
+      "controlled_by": ["clamp_tonnage", "projected_area"],
+      "remedy": "Verify tonnage against projected area x resin factor; move to a larger press if needed."
+    },
+    "wet_resin": {
+      "name": "Resin not dried / high moisture", "prior": 0.12,
+      "symptoms": {"splay_marks": 0.80, "brittle_parts": 0.55, "voids": 0.30, "burn_marks": 0.05},
+      "controlled_by": ["dryer_temp", "dryer_dew_point", "drying_time"],
+      "remedy": "Check dryer dew point (about -40 C) and drying time against the datasheet; quarantine parts since the last good moisture reading."
+    },
+    "uneven_mold_cooling": {
+      "name": "Uneven mold cooling", "prior": 0.11,
+      "symptoms": {"warpage": 0.75, "sink_marks": 0.35, "dims_out_of_tolerance": 0.50},
+      "controlled_by": ["coolant_flow", "coolant_temp_delta", "cooling_line_scale"],
+      "remedy": "Balance coolant flow per circuit; descale lines; target under 3 C delta between mold halves."
+    },
+    "contaminated_resin": {
+      "name": "Contaminated resin or regrind", "prior": 0.06,
+      "symptoms": {"black_specks": 0.80, "brittle_parts": 0.30, "splay_marks": 0.20},
+      "controlled_by": ["regrind_ratio", "material_handling", "purge_procedure"],
+      "remedy": "Purge the barrel, inspect hopper and loader, and quarantine the current lot and regrind."
+    },
+    "short_cooling_time": {
+      "name": "Cooling time too short", "prior": 0.06,
+      "symptoms": {"warpage": 0.55, "sink_marks": 0.45, "dims_out_of_tolerance": 0.45, "voids": 0.20},
+      "controlled_by": ["cooling_time"],
+      "remedy": "Extend cooling time until ejection temperature is below the resin's heat deflection temperature."
+    }
+  },
+  "checks": {
+    "moisture_test": {
+      "name": "Moisture analysis of hopper resin",
+      "how": "Run a moisture analyzer on a hopper sample and compare with the datasheet limit.",
+      "positive_means": "moisture above limit", "minutes": 15,
+      "targets": {"wet_resin": 0.92}, "false_positive_rate": 0.04
+    },
+    "melt_probe_low": {
+      "name": "Melt temperature probe (air shot)",
+      "how": "Take an air shot and probe the melt; positive if more than 10 C below setpoint window.",
+      "positive_means": "melt reads low", "minutes": 10,
+      "targets": {"low_melt_temp": 0.88}, "false_positive_rate": 0.06
+    },
+    "melt_probe_high": {
+      "name": "Melt temperature probe (air shot), high side",
+      "how": "Take an air shot and probe the melt; positive if more than 10 C above setpoint window.",
+      "positive_means": "melt reads high", "minutes": 10,
+      "targets": {"high_melt_temp": 0.85}, "false_positive_rate": 0.06
+    },
+    "cavity_pressure_trace": {
+      "name": "Cavity pressure trace review",
+      "how": "Compare the cavity pressure curve against the validated reference; positive if the pack-phase peak is low or decays early.",
+      "positive_means": "pack pressure deficient", "minutes": 20,
+      "targets": {"insufficient_pack_pressure": 0.85}, "false_positive_rate": 0.08
+    },
+    "vent_inspection": {
+      "name": "Vent inspection",
+      "how": "Inspect and gauge vents at end-of-fill locations; positive if blocked or below spec depth.",
+      "positive_means": "vents blocked / shallow", "minutes": 30,
+      "targets": {"blocked_vents": 0.90}, "false_positive_rate": 0.05
+    },
+    "parting_line_blue_check": {
+      "name": "Parting-line bluing check",
+      "how": "Apply bluing compound and close the mold under low pressure; positive if contact is incomplete.",
+      "positive_means": "shutoff contact incomplete", "minutes": 45,
+      "targets": {"worn_parting_line": 0.88}, "false_positive_rate": 0.05
+    },
+    "clamp_tonnage_check": {
+      "name": "Clamp tonnage verification",
+      "how": "Read actual tonnage with a tie-bar strain gauge; positive if below projected area x resin factor.",
+      "positive_means": "tonnage insufficient", "minutes": 20,
+      "targets": {"insufficient_clamp_force": 0.90}, "false_positive_rate": 0.04
+    },
+    "mold_thermal_image": {
+      "name": "Mold surface thermal imaging",
+      "how": "Image both mold halves after steady state; positive if delta exceeds 5 C or there are hot spots.",
+      "positive_means": "uneven mold temperature", "minutes": 15,
+      "targets": {"uneven_mold_cooling": 0.85}, "false_positive_rate": 0.07
+    },
+    "ejection_temp_check": {
+      "name": "Part ejection temperature check",
+      "how": "IR-gun the part at ejection; positive if above the resin heat deflection temperature.",
+      "positive_means": "part ejected too hot", "minutes": 5,
+      "targets": {"short_cooling_time": 0.85, "uneven_mold_cooling": 0.30}, "false_positive_rate": 0.06
+    },
+    "purge_inspection": {
+      "name": "Purge and hopper contamination screen",
+      "how": "Purge onto a clean sheet and inspect hopper and loader; positive if foreign or degraded material is found.",
+      "positive_means": "contamination found", "minutes": 25,
+      "targets": {"contaminated_resin": 0.85, "high_melt_temp": 0.25}, "false_positive_rate": 0.05
+    }
+  }
+}
